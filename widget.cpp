@@ -1,4 +1,4 @@
-#include "widget.h"
+﻿#include "widget.h"
 #include "ui_widget.h"
 
 
@@ -20,9 +20,10 @@ Widget::Widget(QWidget *parent)
     Uart_RecvDataThread->moveToThread(UartThread);                          // 将自定义的串口接收数据子线程加入到子线程中
 
     /* UDP子线程 */
-    UDP_RecvDataThread = new UDP_RecvData(nullptr, &mUDP);                  // 给UDP接收数据子线程分配动态空间，但不能指定父对象
-    UDPThread = new QThread(this);                                          // 给UDP接收数据子线程分配动态内存空间，指定当前线程为父对象
-    UDP_RecvDataThread->moveToThread(UDPThread);                            // 将自定义的UDP接收数据子线程加入到子线程中
+    UDP_RecvDataThread = new UDP_RecvData(nullptr, &mUDP); // 给UDP接收数据子线程分配动态空间，但不能指定父对象
+    UDPThread = new QThread(this);                         // 给UDP接收数据子线程分配动态内存空间，指定当前线程为父对象
+    UDP_RecvDataThread->moveToThread(UDPThread);           // 将自定义的UDP接收数据子线程加入到子线程中
+    connect(&mUDP, &QUdpSocket::readyRead, UDP_RecvDataThread, &UDP_RecvData::UDPRecvData, Qt::DirectConnection);
 
     /* 频域变换子线程 */
     FFT_RecvDataThread = new FFT_RecvData(nullptr);                         // 给频域变换子线程分配动态空间，但不能指定父对象
@@ -33,6 +34,7 @@ Widget::Widget(QWidget *parent)
     connect(Uart_RecvDataThread, SIGNAL(FFT_Signal()), FFT_RecvDataThread, SLOT(FFT_Transform()), Qt::DirectConnection);
     // UDP子线程发出信号，频域变化子线程收到信号后进行FFT变换
     connect(UDP_RecvDataThread, SIGNAL(FFT_Signal()), FFT_RecvDataThread, SLOT(FFT_Transform()), Qt::DirectConnection);
+
 
     /* 设置滤波器 */
     for (uint8_t i = 0; i < CHn; i++)
@@ -76,8 +78,11 @@ Widget::~Widget()
 */
 void Widget::closeAllThreads()
 {
+    delete UartThread;
     delete Uart_RecvDataThread;   // 释放串口接收数据子线程空间
+    delete UDPThread;
     delete UDP_RecvDataThread;    // 释放UDP接收数据子线程空间
+    delete FFTThread;
     delete FFT_RecvDataThread;    // 释放频域变换子线程空间
 }
 
@@ -89,9 +94,9 @@ void Widget::closeAllThreads()
 */
 void Widget::selectFunction()
 {
-    connect(ui->PBtn_uart,     &QPushButton::clicked,[=](){ui->stackedWidget->setCurrentIndex(0);});
-    connect(ui->PBtn_usb,      &QPushButton::clicked,[=](){ui->stackedWidget->setCurrentIndex(1);});
-    connect(ui->PBtn_udp,&QPushButton::clicked,[=](){ui->stackedWidget->setCurrentIndex(2);});
+    connect(ui->PBtn_uart, &QPushButton::clicked,[=](){ui->stackedWidget->setCurrentIndex(0);});
+    connect(ui->PBtn_usb,  &QPushButton::clicked,[=](){ui->stackedWidget->setCurrentIndex(1);});
+    connect(ui->PBtn_udp,  &QPushButton::clicked,[=](){ui->stackedWidget->setCurrentIndex(2);});
 }
 
 
@@ -188,7 +193,6 @@ void Widget::eegDataPlotUpdate()
                 }
             }
             ui->customplot_9->replot(QCustomPlot::rpQueuedReplot);    // 立即刷新图像
-
             FFTRecvDataStatus = false;
         }
 
@@ -380,19 +384,20 @@ void Widget::on_PBtn_UDPOpen_clicked()
         UDPState = !UDPState;
         if (UDPState == true)
         {
-            UDPThread->start();                                 // 开启UDP子线程
-            mUDP.bind(QHostAddress(ui->Ledit_hostIPaddress->text()), ui->Ledit_port->text().toUShort());  // 绑定到指定的地址和端口
+            IP_Address = ui->Ledit_hostIPaddress->text();
+            Port = ui->Ledit_port->text().toUShort();
+            mUDP.bind(QHostAddress(IP_Address), Port);  // 绑定到指定的地址和端口
+            UDPThread->start();                         // 开启UDP子线程
             ui->PBtn_UDPOpen->setText(QString::fromLocal8Bit(" close "));
-            PlotTimer->start();                                 // 启动定时器，更新绘图函数
+            PlotTimer->start();                         // 启动定时器，更新绘图函数
         }
         else
         {
-            UDPThread->quit();                                  // 关闭UDP子线程
-            UDPThread->wait();                                  // 等待子线程退出
-            mUDP.close();                                       // 关闭UDP
-            UDPState = false;                                   // 更改UDP当前状态标志
+            UDPThread->quit();                          // 关闭UDP子线程
+            UDPThread->wait();                          // 等待子线程退出
+            mUDP.close();
             ui->PBtn_UDPOpen->setText(QString::fromLocal8Bit(" open "));
-            PlotTimer->stop();                                  // 关闭定时器
+            PlotTimer->stop();                          // 关闭定时器
         }
     }
     else {

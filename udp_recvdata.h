@@ -1,4 +1,4 @@
-#ifndef UDP_RECVDATA_H
+﻿#ifndef UDP_RECVDATA_H
 #define UDP_RECVDATA_H
 
 #include <QObject>
@@ -21,16 +21,17 @@ class UDP_RecvData : public QObject
 {
     Q_OBJECT
 public:
-    explicit UDP_RecvData(QObject *parent = nullptr,QUdpSocket *S=nullptr);
+    explicit UDP_RecvData(QObject *parent = nullptr,  QUdpSocket *S=nullptr);
+    ~UDP_RecvData();
+
+public slots:
+    void UDPRecvData();
 
 signals:
     void FFT_Signal(); // UDP发出的FFT变换信号
 
 private:
     QUdpSocket* UDPSocket;
-
-private slots:
-    void UDPRecvData();
 };
 
 #endif // UDP_RECVDATA_H

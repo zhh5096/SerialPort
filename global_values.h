@@ -1,4 +1,4 @@
-#ifndef GLOBAL_VALUES_H
+﻿#ifndef GLOBAL_VALUES_H
 #define GLOBAL_VALUES_H
 
 #include <QWidget>
@@ -16,6 +16,7 @@ extern QString NoiseRMSPP;
 extern int RmsPP_Count;
 extern double  yRange;               // 绘图y轴范围
 extern QString yUnit;                // 绘图y轴坐标
+
 extern int CHn_Count;
 extern QVector<double> time_count;
 extern QVector<double> CH1_Data;
@@ -26,14 +27,18 @@ extern QVector<double> CH5_Data;
 extern QVector<double> CH6_Data;
 extern QVector<double> CH7_Data;
 extern QVector<double> CH8_Data;
+
 extern QReadWriteLock QRWlock;
+extern uint16_t FFT_Count;
 extern bool RecvDataStatus;
+extern QString IP_Address;
+extern ushort Port;
+
 extern int HighFre;
 extern double Fs;
 extern double *FFT_CHnIn[8];
 extern double *FFT_CHnOut[8];
 extern bool FFTRecvDataStatus;
-extern uint16_t FFT_Count;
 extern QVector<double> fre_count;
 extern QVector<double> CH1_FFTAbsData;
 extern QVector<double> CH2_FFTAbsData;

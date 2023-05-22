@@ -1,17 +1,25 @@
-#include "udp_recvdata.h"
+﻿#include "udp_recvdata.h"
 
-UDP_RecvData::UDP_RecvData(QObject *parent, QUdpSocket *S) : QObject(parent), UDPSocket(S)
+UDP_RecvData::UDP_RecvData(QObject *parent, QUdpSocket *s) : QObject(parent), UDPSocket(s)
 {
-    connect(UDPSocket, &QUdpSocket::readyRead, this, &UDP_RecvData::UDPRecvData, Qt::QueuedConnection);
+
+}
+
+UDP_RecvData::~UDP_RecvData()
+{
+
 }
 
 void UDP_RecvData::UDPRecvData()
 {
+    QByteArray datagram = NULL;
     while (UDPSocket->hasPendingDatagrams())  // 循环接收所有待处理的数据包
     {
-        QByteArray datagram;
         datagram.resize(static_cast<int>(UDPSocket->pendingDatagramSize()));  // 调整数据包的大小
         UDPSocket->readDatagram(datagram.data(), datagram.size());            // 读取数据包的内容
+    }
+    if (!datagram.isEmpty())
+    {
         bool     ok=true;
         double   LSB = 2*4.5/(PGA*16777215);
         double   Voltage_AfterConve[8], *p;

@@ -1,4 +1,4 @@
-#include "global_values.h"
+﻿#include "global_values.h"
 
 /* ADS1299参数 */
 ushort PGA = 1;                                       // 放大增益
@@ -14,6 +14,7 @@ QString NoiseRMSPP;                                   // 噪声RMS和PP
 double yRange = 0;
 QString yUnit = "mV";
 int CHn_Count = 2000;
+
 /* 接受数据缓存 */
 QVector<double> time_count = QVector<double>(2000, 0);
 QVector<double> CH1_Data   = QVector<double>(2000, 0);
@@ -24,16 +25,21 @@ QVector<double> CH5_Data   = QVector<double>(2000, 0);
 QVector<double> CH6_Data   = QVector<double>(2000, 0);
 QVector<double> CH7_Data   = QVector<double>(2000, 0);
 QVector<double> CH8_Data   = QVector<double>(2000, 0);
-/* 串口功能数据 */
+
+/* 全局功能参数 */
 QReadWriteLock QRWlock;                                // 读写锁
-bool RecvDataStatus = false;                           // 串口接收数据状态标志
-uint16_t FFT_Count = 0;                                // 串口接收数据个数到FFT_Count时，发出FFT变换的信号
+uint16_t FFT_Count = 0;                                // 串口、USB、UDP接收数据个数到FFT_Count时，发出FFT变换的信号
+bool RecvDataStatus = false;                           // 接收数据状态标志
+QString IP_Address;                                    // UDP通信IP地址
+ushort Port;                                           // UDP通信端口号
+
 /* 频域数据缓存 */
 int HighFre = 60;
 double Fs = 500;
 double *FFT_CHnIn[8];
 double *FFT_CHnOut[8];
 bool FFTRecvDataStatus = false;                        // FFT变换完成标志
+
 // 存储每个通道FFT变换取绝对值的数据
 QVector<double> fre_count        = QVector<double>(1000, 0);
 QVector<double> CH1_FFTAbsData   = QVector<double>(1000, 0);
