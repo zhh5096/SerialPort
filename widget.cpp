@@ -20,9 +20,9 @@ Widget::Widget(QWidget *parent)
     Uart_RecvDataThread->moveToThread(UartThread);                          // 将自定义的串口接收数据子线程加入到子线程中
 
     /* UDP子线程 */
-    UDP_RecvDataThread = new UDP_RecvData(nullptr, &mUDP); // 给UDP接收数据子线程分配动态空间，但不能指定父对象
-    UDPThread = new QThread(this);                         // 给UDP接收数据子线程分配动态内存空间，指定当前线程为父对象
-    UDP_RecvDataThread->moveToThread(UDPThread);           // 将自定义的UDP接收数据子线程加入到子线程中
+    UDP_RecvDataThread = new UDP_RecvData(nullptr, &mUDP);                  // 给UDP接收数据子线程分配动态空间，但不能指定父对象
+    UDPThread = new QThread(this);                                          // 给UDP接收数据子线程分配动态内存空间，指定当前线程为父对象
+    UDP_RecvDataThread->moveToThread(UDPThread);                            // 将自定义的UDP接收数据子线程加入到子线程中
     connect(&mUDP, &QUdpSocket::readyRead, UDP_RecvDataThread, &UDP_RecvData::UDPRecvData, Qt::DirectConnection);
 
     /* 频域变换子线程 */
@@ -131,7 +131,7 @@ void Widget::eegDataPlotConfig()
         connect(customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->yAxis2, SLOT(setRange(QCPRange)));
         customPlot->axisRect()->setBackground(QBrush(Qt::white));
     }
-    ui->customplot_9->xAxis->setRange(0,60);
+    ui->customplot_9->xAxis->setRange(0, 60);
     ui->customplot_9->yAxis->setRange(0,1);
     ui->customplot_9->xAxis->setLabel("频率/HZ");
     ui->customplot_9->yAxis->setLabel("幅值/V");
@@ -428,6 +428,7 @@ void Widget::on_PBtn_Refresh_clicked()
     CH_Mode = ui->CBox_CH_Mode->currentText();
     yRange = ui->Ledit_YRange->text().toDouble();
     yUnit = ui->CBox_YUnit->currentText();
+    HighFre = ui->Ledit_HighFre->text().toInt();
     /* 如果串口已关闭，则可以更新绘图界面 */
     if (UartState == false)
     {
@@ -544,18 +545,33 @@ void Widget::on_PBtn_Refresh_clicked()
 
 
 /*
-    函   数：on_Slider_FFT_valueChanged
+    函   数：on_Slider_FFTyrange_valueChanged
     描   述：更改FFT图像的Y轴范围
     输   入：无
     输   出：无
 */
-void Widget::on_Slider_FFT_valueChanged(int value)
+void Widget::on_Slider_FFTyrange_valueChanged(int value)
 {
     double range = fft_ymax - fft_ymin;
     double scaledValue = value / 100.0;                                   // 将值缩放到 0 到 1 之间
     double fft_yRange = scaledValue * range;
     ui->customplot_9->yAxis->setRange(fft_ymin, fft_ymin + fft_yRange);   // 更新图表或绘图区域的 Y 轴范围
     ui->customplot_9->replot();
+}
+
+
+/*
+    函   数：on_Slider_FFTrr_valueChanged
+    描   述：更改FFT图像的刷新速率
+    输   入：无
+    输   出：无
+*/
+void Widget::on_Slider_FFrr_valueChanged(int value)
+{
+    double range = fft_rrmax - fft_rrmin;
+    double scaledValue = value / 100.0;                                   // 将值缩放到 0 到 1 之间
+    double fft_rrRange = scaledValue * range;
+    RR = fft_rrmin + fft_rrRange;
 }
 
 

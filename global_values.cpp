@@ -3,7 +3,6 @@
 /* ADS1299参数 */
 ushort PGA = 1;                                       // 放大增益
 ushort CHn = 8;                                       // 通道数
-uint16_t SPS = 500;                                   // 采样率
 QString CH_Mode = "Normal_Input";                     // ADS1299工作模式
 QVector<double> CHn_NoiseRMS = QVector<double>(8, 0); // 存储每个通道噪声的均方根值
 QVector<double> CHn_NoisePP  = QVector<double>(8, 0); // 存储每个通道噪声的峰峰值
@@ -36,6 +35,7 @@ ushort Port;                                           // UDP通信端口号
 /* 频域数据缓存 */
 int HighFre = 60;
 double Fs = 500;
+double RR = 100;                                       // FFT刷新速率
 double *FFT_CHnIn[8];
 double *FFT_CHnOut[8];
 bool FFTRecvDataStatus = false;                        // FFT变换完成标志
@@ -53,3 +53,5 @@ QVector<double> CH8_FFTAbsData   = QVector<double>(1000, 0);
 fftw_plan FFT_CHn[8];
 double fft_ymin = 0;
 double fft_ymax = 1.0;
+double fft_rrmin = 20;
+double fft_rrmax = 2000;

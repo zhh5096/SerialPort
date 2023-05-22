@@ -7,7 +7,6 @@
 
 extern ushort  PGA;                  // 放大增益
 extern ushort  CHn;                  // 通道数
-extern uint16_t SPS;                 // 采样率
 extern QString CH_Mode;              // 通道工作模式
 extern QVector<double> CHn_NoiseRMS; // 存储每个通道噪声的均方根值
 extern QVector<double> CHn_NoisePP;  // 存储每个通道噪声的峰峰值
@@ -36,6 +35,7 @@ extern ushort Port;
 
 extern int HighFre;
 extern double Fs;
+extern double RR;
 extern double *FFT_CHnIn[8];
 extern double *FFT_CHnOut[8];
 extern bool FFTRecvDataStatus;
@@ -51,5 +51,7 @@ extern QVector<double> CH8_FFTAbsData;
 extern fftw_plan FFT_CHn[8];
 extern double fft_ymin;
 extern double fft_ymax;
+extern double fft_rrmin;
+extern double fft_rrmax;
 
 #endif // GLOBAL_VALUES_H

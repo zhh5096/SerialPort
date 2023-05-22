@@ -122,7 +122,7 @@ void UDP_RecvData::UDPRecvData()
         QRWlock.unlock(); // 写入锁解锁
 
         FFT_Count++;
-        if (FFT_Count == SPS/5)
+        if (FFT_Count == RR)
         {
             FFT_Count = 0;
             emit FFT_Signal();
