@@ -14,8 +14,6 @@
 #include "fir_trapfilter.h"
 #include "bandpassfilter_cofficient.h"
 #include "fir_bandpassfilter.h"
-#include "lowpassfilter_cofficient.h"
-#include "fir_lowpassfilter.h"
 
 class UDP_RecvData : public QObject
 {

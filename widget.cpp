@@ -41,7 +41,6 @@ Widget::Widget(QWidget *parent)
     {
         Highpassfilter_CreateListHear(&highpassfilter_pDelay[i], FIR_Highpassfilter_FilterLength); // 用于存放每个通道过去时刻经高通滤波后的滤波结果
         Bandpassfilter_CreateListHear(&bandpassfilter_pDelay[i], FIR_Bandpassfilter_FilterLength); // 用于存放每个通道过去时刻经带通滤波后的滤波结果
-        Lowpassfilter_CreateListHear(&lowpassfilter_pDelay[i], FIR_Lowpassfilter_FilterLength);    // 用于存放每个通道过去时刻经低通滤波后的滤波结果
         Trapfilter_CreateListHear(&trapfilter_pDelay[i], FIR_Trapfilter_FilterLength);             // 用于存放每个通道过去时刻经陷波滤波后的滤波结果
     }
 
@@ -642,30 +641,6 @@ void Widget::on_PBtn_BandPassFilter_clicked()
         {
             ui->PBtn_BandPassFilter->setStyleSheet("background-color: rgb(255, 255, 255);");
             BandPassFilterStatus = false;
-        }
-    }
-}
-
-
-/*
-    函   数：on_PBtn_LowPassFilter_clicked
-    描   述：低通滤波
-    输   入：无
-    输   出：无
-*/
-void Widget::on_PBtn_LowPassFilter_clicked()
-{
-    if(UartState == true)
-    {
-        if(LowPassFilterStatus == false)
-        {
-            ui->PBtn_LowPassFilter->setStyleSheet("background-color: rgb(0, 170, 255);");
-            LowPassFilterStatus = true;
-        }
-        else
-        {
-            ui->PBtn_LowPassFilter->setStyleSheet("background-color: rgb(255, 255, 255);");
-            LowPassFilterStatus = false;
         }
     }
 }

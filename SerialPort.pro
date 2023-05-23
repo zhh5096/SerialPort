@@ -20,11 +20,9 @@ SOURCES += \
     fft_recvdata.cpp \
     fir_bandpassfilter.cpp \
     fir_highpassfilter.cpp \
-    fir_lowpassfilter.cpp \
     fir_trapfilter.cpp \
     global_values.cpp \
     highpassfilter_cofficient.cpp \
-    lowpassfilter_cofficient.cpp \
     main.cpp \
     qcustomplot.cpp \
     trapfilter_cofficient.cpp \
@@ -39,12 +37,10 @@ HEADERS += \
     fftw-3.3.5-dll64/fftw3.h \
     fir_bandpassfilter.h \
     fir_highpassfilter.h \
-    fir_lowpassfilter.h \
     fir_trapfilter.h \
     global_values.h \
     hidapi.h \
     highpassfilter_cofficient.h \
-    lowpassfilter_cofficient.h \
     qcustomplot.h \
     trapfilter_cofficient.h \
     uart_recvdata.h \

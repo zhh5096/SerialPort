@@ -24,7 +24,6 @@
 #include "highpassfilter_cofficient.h"
 #include "trapfilter_cofficient.h"
 #include "bandpassfilter_cofficient.h"
-#include "lowpassfilter_cofficient.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Widget; }
@@ -79,7 +78,6 @@ private slots:
     void on_PBtn_HighPassFilter_clicked();
     void on_PBtn_TrapFilter_clicked();
     void on_PBtn_BandPassFilter_clicked();
-    void on_PBtn_LowPassFilter_clicked();
     void on_PBtn_RmsPP_clicked();
     void updateUsb(QString);
     void on_PBtn_UsbRecv_clicked();
