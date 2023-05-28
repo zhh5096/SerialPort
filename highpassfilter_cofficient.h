@@ -6,7 +6,7 @@
 extern bool HighPassFilterStatus;
 
 extern uint16_t FIR_Highpassfilter_FilterLength;
-extern double   FIR_Highpassfilter_Coefficient[1303];
+extern double   FIR_Highpassfilter_Coefficient[921];
 
 // 单链表结点定义
 typedef struct highpassfilter_pDelayNode

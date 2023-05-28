@@ -6,7 +6,7 @@
 extern bool BandPassFilterStatus;
 
 extern uint16_t FIR_Bandpassfilter_FilterLength;
-extern double   FIR_Bandpassfilter_Coefficient[1302];
+extern double   FIR_Bandpassfilter_Coefficient[921];
 
 // 单链表结点定义
 typedef struct bandpassfilter_pDelayNode

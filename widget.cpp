@@ -11,7 +11,7 @@ Widget::Widget(QWidget *parent)
     eegDataPlotConfig();                                                    // 绘图界面初始化配置
 
     PlotTimer = new QTimer();
-    PlotTimer->setInterval(40);                                             // 每隔40ms刷新
+    PlotTimer->setInterval(80);                                             // 每隔80ms刷新
     connect(PlotTimer, SIGNAL(timeout()), this, SLOT(eegDataPlotUpdate())); // 接收到定时器发出的信号，更新绘图界面
 
     /* 串口子线程 */
@@ -124,7 +124,8 @@ void Widget::eegDataPlotConfig()
         customPlot->yAxis->setLabel("");                    // 清空值轴（左侧y轴）标签
         customPlot->xAxis->setTickLabels(false);            // 设置键轴（底部x轴）标签不显示刻度值
         customPlot->xAxis->setVisible(false);               // 设置键轴（底部x轴）不显示刻度线
-        customPlot->xAxis->setRange(0, CHn_Count);          // 设置值轴（底部x轴）范围
+        customPlot->xAxis->setRange(0, CHn_Count);          // 设置键轴（底部x轴）范围
+        customPlot->yAxis->setRange(-0.001, 0.001);         // 设置值轴（左侧y轴）范围
         /* 将底部x轴和左侧y轴的范围转移到顶部x轴和右侧y轴上，使上下两个x轴的范围相等，左右两个y轴范围相等 */
         connect(customPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->xAxis2, SLOT(setRange(QCPRange)));
         connect(customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->yAxis2, SLOT(setRange(QCPRange)));
@@ -427,7 +428,7 @@ void Widget::on_PBtn_Refresh_clicked()
     CH_Mode = ui->CBox_CH_Mode->currentText();
     yRange = ui->Ledit_YRange->text().toDouble();
     yUnit = ui->CBox_YUnit->currentText();
-    HighFre = ui->Ledit_HighFre->text().toInt();
+    setFFTMessage();
     /* 如果串口已关闭，则可以更新绘图界面 */
     if (UartState == false)
     {
@@ -544,31 +545,45 @@ void Widget::on_PBtn_Refresh_clicked()
 
 
 /*
-    函   数：on_Slider_FFTyrange_valueChanged
-    描   述：更改FFT图像的Y轴范围
+    函   数：setFFTMessage
+    描   述：设置FFT图像参数
     输   入：无
     输   出：无
 */
-void Widget::on_Slider_FFTyrange_valueChanged(int value)
+void Widget::setFFTMessage()
 {
-    double range = fft_ymax - fft_ymin;
-    double scaledValue = value / 100.0;                                   // 将值缩放到 0 到 1 之间
-    double fft_yRange = scaledValue * range;
-    ui->customplot_9->yAxis->setRange(fft_ymin, fft_ymin + fft_yRange);   // 更新图表或绘图区域的 Y 轴范围
+    QString selectedFreq = ui->CBox_Freq->currentText();
+    QString selectedAmpl = ui->CBox_Ampl->currentText();
+    int sliderValue = ui->Slider_FFTrr->value();
+
+    /* fft截止频率 */
+    if (selectedFreq == "60 Hz")
+        HighFre = 60;
+    else if (selectedFreq == "70 Hz")
+        HighFre = 70;
+    else if (selectedFreq == "80 Hz")
+        HighFre = 80;
+    else if (selectedFreq == "90 Hz")
+        HighFre = 90;
+    else
+        HighFre = 100;
+
+    /* fft幅值 */
+    if (selectedAmpl == "1 V")
+        ui->customplot_9->yAxis->setRange(0, 1);
+    else if (selectedAmpl == "100 mV")
+        ui->customplot_9->yAxis->setRange(0, 0.1);
+    else if (selectedAmpl == "10 mV")
+        ui->customplot_9->yAxis->setRange(0, 0.01);
+    else if (selectedAmpl == "1 mV")
+        ui->customplot_9->yAxis->setRange(0, 0.001);
+    else
+        ui->customplot_9->yAxis->setRange(0, 0.0001);
     ui->customplot_9->replot();
-}
 
-
-/*
-    函   数：on_Slider_FFTrr_valueChanged
-    描   述：更改FFT图像的刷新速率
-    输   入：无
-    输   出：无
-*/
-void Widget::on_Slider_FFrr_valueChanged(int value)
-{
+    /* FFT刷新速率 */
     double range = fft_rrmax - fft_rrmin;
-    double scaledValue = value / 100.0;                                   // 将值缩放到 0 到 1 之间
+    double scaledValue = sliderValue / 100.0;
     double fft_rrRange = scaledValue * range;
     RR = fft_rrmin + fft_rrRange;
 }

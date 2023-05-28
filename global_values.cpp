@@ -12,18 +12,18 @@ QString NoiseRMSPP;                                   // 噪声RMS和PP
 /* 绘图参数 */
 double yRange = 0;
 QString yUnit = "mV";
-int CHn_Count = 2000;
+int CHn_Count = 8000;
 
 /* 接受数据缓存 */
-QVector<double> time_count = QVector<double>(2000, 0);
-QVector<double> CH1_Data   = QVector<double>(2000, 0);
-QVector<double> CH2_Data   = QVector<double>(2000, 0);
-QVector<double> CH3_Data   = QVector<double>(2000, 0);
-QVector<double> CH4_Data   = QVector<double>(2000, 0);
-QVector<double> CH5_Data   = QVector<double>(2000, 0);
-QVector<double> CH6_Data   = QVector<double>(2000, 0);
-QVector<double> CH7_Data   = QVector<double>(2000, 0);
-QVector<double> CH8_Data   = QVector<double>(2000, 0);
+QVector<double> time_count = QVector<double>(8000, 0);
+QVector<double> CH1_Data   = QVector<double>(8000, 0);
+QVector<double> CH2_Data   = QVector<double>(8000, 0);
+QVector<double> CH3_Data   = QVector<double>(8000, 0);
+QVector<double> CH4_Data   = QVector<double>(8000, 0);
+QVector<double> CH5_Data   = QVector<double>(8000, 0);
+QVector<double> CH6_Data   = QVector<double>(8000, 0);
+QVector<double> CH7_Data   = QVector<double>(8000, 0);
+QVector<double> CH8_Data   = QVector<double>(8000, 0);
 
 /* 全局功能参数 */
 QReadWriteLock QRWlock;                                // 读写锁
@@ -35,23 +35,23 @@ ushort Port;                                           // UDP通信端口号
 /* 频域数据缓存 */
 int HighFre = 60;
 double Fs = 500;
-double RR = 100;                                       // FFT刷新速率
+double RR = 80;                                        // FFT刷新速率范围
 double *FFT_CHnIn[8];
 double *FFT_CHnOut[8];
 bool FFTRecvDataStatus = false;                        // FFT变换完成标志
 
 // 存储每个通道FFT变换取绝对值的数据
-QVector<double> fre_count        = QVector<double>(1000, 0);
-QVector<double> CH1_FFTAbsData   = QVector<double>(1000, 0);
-QVector<double> CH2_FFTAbsData   = QVector<double>(1000, 0);
-QVector<double> CH3_FFTAbsData   = QVector<double>(1000, 0);
-QVector<double> CH4_FFTAbsData   = QVector<double>(1000, 0);
-QVector<double> CH5_FFTAbsData   = QVector<double>(1000, 0);
-QVector<double> CH6_FFTAbsData   = QVector<double>(1000, 0);
-QVector<double> CH7_FFTAbsData   = QVector<double>(1000, 0);
-QVector<double> CH8_FFTAbsData   = QVector<double>(1000, 0);
+QVector<double> fre_count        = QVector<double>(4000, 0);
+QVector<double> CH1_FFTAbsData   = QVector<double>(4000, 0);
+QVector<double> CH2_FFTAbsData   = QVector<double>(4000, 0);
+QVector<double> CH3_FFTAbsData   = QVector<double>(4000, 0);
+QVector<double> CH4_FFTAbsData   = QVector<double>(4000, 0);
+QVector<double> CH5_FFTAbsData   = QVector<double>(4000, 0);
+QVector<double> CH6_FFTAbsData   = QVector<double>(4000, 0);
+QVector<double> CH7_FFTAbsData   = QVector<double>(4000, 0);
+QVector<double> CH8_FFTAbsData   = QVector<double>(4000, 0);
 fftw_plan FFT_CHn[8];
 double fft_ymin = 0;
 double fft_ymax = 1.0;
-double fft_rrmin = 20;
-double fft_rrmax = 2000;
+double fft_rrmin = 80;
+double fft_rrmax = 8000;

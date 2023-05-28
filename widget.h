@@ -82,7 +82,6 @@ private slots:
     void updateUsb(QString);
     void on_PBtn_UsbRecv_clicked();
     void on_PBtn_UsbSend_clicked();
-    void on_Slider_FFTyrange_valueChanged(int value);
-    void on_Slider_FFrr_valueChanged(int value);
+    void setFFTMessage();
 };
 #endif // WIDGET_H
