@@ -49,6 +49,13 @@ void Uart_RecvData::UartRecvData()
                 *(p+i) = FIR_BandPassFilter(*(p+i), &bandpassfilter_pDelay[i]);
             }
         }
+        if (LowPassFilterStatus == true)
+        {
+            for(uint8_t i=0; i<CHn; i++)
+            {
+                *(p+i) = FIR_LowPassFilter(*(p+i), &lowpassfilter_pDelay[i]);
+            }
+        }
         if (CH_Mode == "Input_Short" && RmsPP_Status == true)
         {
             for (int i = 0; i < CHn; i++)

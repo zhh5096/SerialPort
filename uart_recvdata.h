@@ -14,6 +14,8 @@
 #include "fir_trapfilter.h"
 #include "bandpassfilter_cofficient.h"
 #include "fir_bandpassfilter.h"
+#include "lowpassfilter_cofficient.h"
+#include "fir_lowpassfilter.h"
 
 class Uart_RecvData : public QObject
 {
