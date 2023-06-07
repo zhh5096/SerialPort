@@ -15,6 +15,7 @@ extern QString NoiseRMSPP;
 extern int RmsPP_Count;
 extern double  yRange;               // 绘图y轴范围
 extern QString yUnit;                // 绘图y轴坐标
+extern QColor rectColor[5];          // 绘图刺激元矩形填充颜色
 
 extern int CHn_Count;
 extern QVector<double> time_count;
@@ -53,5 +54,7 @@ extern double fft_ymin;
 extern double fft_ymax;
 extern double fft_rrmin;
 extern double fft_rrmax;
+
+extern bool IBLS_AccomplishState;
 
 #endif // GLOBAL_VALUES_H

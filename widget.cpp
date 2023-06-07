@@ -7,8 +7,12 @@ Widget::Widget(QWidget *parent)
     , ui(new Ui::Widget)
 {
     ui->setupUi(this);
+
     selectFunction();                                                       // 选择串口，USB，无线
     eegDataPlotConfig();                                                    // 绘图界面初始化配置
+    drawStimulusmetaGraphs();                                               // 绘画刺激元图形
+    setFir_filter();                                                        // 设置滤波器
+    setFFT_plan();                                                          // 设置FFT Plan
 
     PlotTimer = new QTimer();
     PlotTimer->setInterval(80);                                             // 每隔80ms刷新
@@ -30,28 +34,13 @@ Widget::Widget(QWidget *parent)
     FFTThread  = new QThread(this);                                         // 给频域变换子线程分配动态内存空间，指定当前线程为父对象
     FFT_RecvDataThread->moveToThread(FFTThread);                            // 将自定义的频域变换子线程加入到子线程中
 
-    // 串口子线程发出信号，频域变换子线程接收到信号后进行FFT变换
-    connect(Uart_RecvDataThread, SIGNAL(FFT_Signal()), FFT_RecvDataThread, SLOT(FFT_Transform()), Qt::DirectConnection);
-    // UDP子线程发出信号，频域变化子线程收到信号后进行FFT变换
-    connect(UDP_RecvDataThread, SIGNAL(FFT_Signal()), FFT_RecvDataThread, SLOT(FFT_Transform()), Qt::DirectConnection);
+    /* 算法子线程 */
+    Arithmetic_Thread = new arithmetic(nullptr);                            // 给算法子线程分配动态空间，但不能指定父对象
+    ArithmeticThread = new QThread(this);                                   // 给算法子线程分配动态内存空间，指定当前线程为父对象
+    Arithmetic_Thread->moveToThread(ArithmeticThread);                      // 将自定义的算法子线程加入到子线程中
 
-
-    /* 设置滤波器 */
-    for (uint8_t i = 0; i < CHn; i++)
-    {
-        Highpassfilter_CreateListHear(&highpassfilter_pDelay[i], FIR_Highpassfilter_FilterLength); // 用于存放每个通道过去时刻经高通滤波后的滤波结果
-        Bandpassfilter_CreateListHear(&bandpassfilter_pDelay[i], FIR_Bandpassfilter_FilterLength); // 用于存放每个通道过去时刻经带通滤波后的滤波结果
-        Lowpassfilter_CreateListHear(&lowpassfilter_pDelay[i], FIR_Lowpassfilter_FilterLength);    // 用于存放每个通道过去时刻经低通滤波后的滤波结果
-        Trapfilter_CreateListHear(&trapfilter_pDelay[i], FIR_Trapfilter_FilterLength);             // 用于存放每个通道过去时刻经陷波滤波后的滤波结果
-    }
-
-    /* 设置FFT Plan */
-    for (uint8_t i = 0; i < CHn; i++)
-    {
-        FFT_CHnIn[i]  = fftw_alloc_real(static_cast<size_t>(CHn_Count));
-        FFT_CHnOut[i] = fftw_alloc_real(static_cast<size_t>(CHn_Count));
-        FFT_CHn[i] = fftw_plan_r2r_1d(CHn_Count, FFT_CHnIn[i], FFT_CHnOut[i], FFTW_R2HC, FFTW_ESTIMATE);
-    }
+    connect(Uart_RecvDataThread, SIGNAL(FFT_Signal()), FFT_RecvDataThread, SLOT(FFT_Transform()), Qt::DirectConnection);  // 串口子线程发出信号，频域变换子线程接收到信号后进行FFT变换
+    connect(UDP_RecvDataThread,  SIGNAL(FFT_Signal()), FFT_RecvDataThread, SLOT(FFT_Transform()), Qt::DirectConnection);  // UDP子线程发出信号，频域变化子线程收到信号后进行FFT变换
 
     connect(this, &Widget::destroyed, this, &Widget::closeAllThreads);      // 关闭所有子线程
 }
@@ -70,6 +59,7 @@ Widget::~Widget()
     }
 }
 
+
 /*
     函   数：closeAllThreads
     描   述：释放所有开启的子线程
@@ -84,11 +74,14 @@ void Widget::closeAllThreads()
     delete UDP_RecvDataThread;    // 释放UDP接收数据子线程空间
     delete FFTThread;
     delete FFT_RecvDataThread;    // 释放频域变换子线程空间
+    delete ArithmeticThread;
+    delete Arithmetic_Thread;     // 释放算法子线程空间
 }
+
 
 /*
     函   数：selectFunction
-    描   述：选择串口、USB、无线功能
+    描   述：选择串口、USB、UDP功能
     输   入：无
     输   出：无
 */
@@ -168,6 +161,7 @@ void Widget::eegDataPlotUpdate()
         }
         QRWlock.unlock(); // 读取锁解锁
 
+        // 峰峰值与均方根值测量
         if (RmsPP_Count >= CHn_Count)
         {
             ui->Txt_CHnNoise->clear();
@@ -196,6 +190,14 @@ void Widget::eegDataPlotUpdate()
             ui->customplot_9->replot(QCustomPlot::rpQueuedReplot);    // 立即刷新图像
             FFTRecvDataStatus = false;
         }
+
+        // 算法结果显示
+        if (IBLS_AccomplishState == true)
+        {
+            update();
+            IBLS_AccomplishState = false;
+        }
+
 
         RecvDataStatus = true;
     }
@@ -381,7 +383,8 @@ void Widget::setUartMessageState()
 */
 void Widget::on_PBtn_UDPOpen_clicked()
 {
-    if (!ui->Ledit_hostIPaddress->text().isEmpty() && !ui->Ledit_port->text().isEmpty()) {
+    if (!ui->Ledit_hostIPaddress->text().isEmpty() && !ui->Ledit_port->text().isEmpty())
+    {
         UDPState = !UDPState;
         if (UDPState == true)
         {
@@ -401,7 +404,8 @@ void Widget::on_PBtn_UDPOpen_clicked()
             PlotTimer->stop();                          // 关闭定时器
         }
     }
-    else {
+    else
+    {
         QMessageBox::information(this, QString::fromLocal8Bit(" Warning "), QString::fromLocal8Bit(" No valid IP Address or Port is available. "));
         return;
     }
@@ -416,6 +420,7 @@ void Widget::on_PBtn_UDPOpen_clicked()
 */
 void Widget::on_PBtn_Refresh_clicked()
 {
+    setFFTMessage();                                                // 设置FFT图像参数
     ui->CBox_Uart->clear();
     /* 遍历可用的串口设备并添加到串口设备显示框 */
     QList<QSerialPortInfo> serialPortInfo;
@@ -429,7 +434,6 @@ void Widget::on_PBtn_Refresh_clicked()
     CH_Mode = ui->CBox_CH_Mode->currentText();
     yRange = ui->Ledit_YRange->text().toDouble();
     yUnit = ui->CBox_YUnit->currentText();
-    setFFTMessage();
     /* 如果串口已关闭，则可以更新绘图界面 */
     if (UartState == false)
     {
@@ -555,7 +559,6 @@ void Widget::setFFTMessage()
 {
     QString selectedFreq = ui->CBox_Freq->currentText();
     QString selectedAmpl = ui->CBox_Ampl->currentText();
-    int sliderValue = ui->Slider_FFTrr->value();
 
     /* fft截止频率 */
     if (selectedFreq == "60 Hz")
@@ -572,21 +575,74 @@ void Widget::setFFTMessage()
     /* fft幅值 */
     if (selectedAmpl == "1 V")
         ui->customplot_9->yAxis->setRange(0, 1);
+    else if (selectedAmpl == "500 mV")
+        ui->customplot_9->yAxis->setRange(0, 0.5);
     else if (selectedAmpl == "100 mV")
         ui->customplot_9->yAxis->setRange(0, 0.1);
+    else if (selectedAmpl == "50 mV")
+        ui->customplot_9->yAxis->setRange(0, 0.05);
     else if (selectedAmpl == "10 mV")
         ui->customplot_9->yAxis->setRange(0, 0.01);
+    else if (selectedAmpl == "5 mV")
+        ui->customplot_9->yAxis->setRange(0, 0.005);
     else if (selectedAmpl == "1 mV")
         ui->customplot_9->yAxis->setRange(0, 0.001);
+    else if (selectedAmpl == "500 uV")
+        ui->customplot_9->yAxis->setRange(0, 0.0005);
     else
         ui->customplot_9->yAxis->setRange(0, 0.0001);
     ui->customplot_9->replot();
+}
 
-    /* FFT刷新速率 */
+
+/*
+    函   数：on_Slider_FFTrr_valueChanged
+    描   述：设置FFT刷新速率
+    输   入：无
+    输   出：无
+*/
+void Widget::on_Slider_FFTrr_valueChanged()
+{
+    int sliderValue = ui->Slider_FFTrr->value();
     double range = fft_rrmax - fft_rrmin;
     double scaledValue = sliderValue / 100.0;
     double fft_rrRange = scaledValue * range;
     RR = fft_rrmin + fft_rrRange;
+}
+
+
+/*
+    函   数：setFFT_plan
+    描   述：设置FFT plan
+    输   入：无
+    输   出：无
+*/
+void Widget::setFFT_plan()
+{
+    for (uint8_t i = 0; i < CHn; i++)
+    {
+        FFT_CHnIn[i]  = fftw_alloc_real(static_cast<size_t>(CHn_Count));
+        FFT_CHnOut[i] = fftw_alloc_real(static_cast<size_t>(CHn_Count));
+        FFT_CHn[i] = fftw_plan_r2r_1d(CHn_Count, FFT_CHnIn[i], FFT_CHnOut[i], FFTW_R2HC, FFTW_ESTIMATE);
+    }
+}
+
+
+/*
+    函   数：setFir_filter
+    描   述：设置滤波器
+    输   入：无
+    输   出：无
+*/
+void Widget::setFir_filter()
+{
+    for (uint8_t i = 0; i < CHn; i++)
+    {
+        Highpassfilter_CreateListHear(&highpassfilter_pDelay[i], FIR_Highpassfilter_FilterLength); // 用于存放每个通道过去时刻经高通滤波后的滤波结果
+        Bandpassfilter_CreateListHear(&bandpassfilter_pDelay[i], FIR_Bandpassfilter_FilterLength); // 用于存放每个通道过去时刻经带通滤波后的滤波结果
+        Lowpassfilter_CreateListHear(&lowpassfilter_pDelay[i], FIR_Lowpassfilter_FilterLength);    // 用于存放每个通道过去时刻经低通滤波后的滤波结果
+        Trapfilter_CreateListHear(&trapfilter_pDelay[i], FIR_Trapfilter_FilterLength);             // 用于存放每个通道过去时刻经陷波滤波后的滤波结果
+    }
 }
 
 
@@ -711,91 +767,83 @@ void Widget::on_PBtn_RmsPP_clicked()
 
 
 /*
-    函   数：on_PBtn_UsbOpen_clicked
-    描   述：打开USB
+    函   数：on_PBtn_SaveRecvData_clicked
+    描   述：接受保存数据
+    输   入：8个通道的脑电信号数据
+    输   出：txt文档
+*/
+void Widget::on_PBtn_SaveRecvData_clicked()
+{
+    QString fileName = QDate::currentDate().toString("yyyy-MM-dd") + ".txt";
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        QMessageBox::information(this, "Error", "Failed to open the save function.");
+        return;
+    }
+    QTextStream out(&file);
+    QVector<QVector<double>> channelData = {CH1_Data, CH2_Data, CH3_Data, CH4_Data, CH5_Data, CH6_Data, CH7_Data, CH8_Data};
+    for (int channel = 0; channel < 8; ++channel)
+    {
+        for (int i = 0; i < channelData[channel].size(); ++i)
+        {
+            out << channelData[channel][i] << " ";
+        }
+        out << endl;
+    }
+    file.close();
+}
+
+
+/*
+    函   数：drawStimulusmetaGraphs
+    描   述：绘画刺激元图形
     输   入：无
     输   出：无
 */
-void Widget::on_PBtn_UsbOpen_clicked()
+void Widget::drawStimulusmetaGraphs()
 {
-    hid_init();   // 初始化
-    qDebug()<<handle;
-    handle = hid_open(0x0483, 0x5750, NULL);    // 获取VID,PID
-    qDebug()<<handle;
-    if(handle == NULL)
+    QVBoxLayout *mainLayout = new QVBoxLayout(ui->stimuluselementwidget);
+    mainLayout->setContentsMargins(10, 10, 10, 10);
+    StimulusmetaGraphics *customWidget = new StimulusmetaGraphics(ui->stimuluselementwidget);
+    mainLayout->addWidget(customWidget);
+    ui->stimuluselementwidget->setStyleSheet("background-color: white;");
+}
+
+
+/*
+    函   数：on_PBtn_CCA_clicked
+    描   述：CCA算法
+    输   入：无
+    输   出：无
+*/
+void Widget::on_PBtn_CCA_clicked()
+{
+
+}
+
+
+/*
+    函   数：on_PBtn_IBLS_clicked
+    描   述：IBLS算法
+    输   入：无
+    输   出：无
+*/
+void Widget::on_PBtn_IBLS_clicked()
+{
+    static bool IBLS_State = false;
+    IBLS_State = !IBLS_State;
+    if (IBLS_State)
     {
-        QMessageBox::information(this, "warn", "未检测到设备！");
-        ui->PBtn_uart->setEnabled(true);
-        ui->PBtn_usb->setEnabled(true);
-        ui->PBtn_udp->setEnabled(true);
+        connect(FFT_RecvDataThread, SIGNAL(FFT_Accomplish()), Arithmetic_Thread, SLOT(IBLS()), Qt::DirectConnection);  // FFT频域变换子线程发出信号，算法子线程接收到信号后调用算法进行分类
+        ui->PBtn_IBLS->setStyleSheet("background-color: rgb(0, 170, 255);");
     }
     else
     {
-        hid_set_nonblocking(handle, 1);
-        usbThread=new USB_Thread;
-        usbThread->start();
-        connect(usbThread,&USB_Thread::updateString11,this,&Widget::updateUsb);
-        ui->PBtn_uart->setEnabled(false);
-        ui->PBtn_usb->setEnabled(false);
-        ui->PBtn_udp->setEnabled(false);
+        disconnect(FFT_RecvDataThread, SIGNAL(FFT_Accomplish()), Arithmetic_Thread, SLOT(IBLS()));
+        rectColor[0] = Qt::white; rectColor[1] = Qt::white;  rectColor[2] = Qt::white;  rectColor[3] = Qt::white;  rectColor[4] = Qt::white;
+        update();
+        ui->PBtn_IBLS->setStyleSheet("background-color: rgb(255, 255, 255);");
     }
 }
 
-
-/*
-    函   数：updateUsb
-    描   述：USB自动接收
-    输   入：无
-    输   出：无
-*/
-void Widget::updateUsb(QString str1)
-{
-    if(!str1.isEmpty())
-    {
-        ui->Txt_Usb->setText(str1);
-    }
-}
-
-
-/*
-    函   数：on_PBtn_UsbRecv_clicked
-    描   述：USB手动接收
-    输   入：无
-    输   出：无
-*/
-void Widget::on_PBtn_UsbRecv_clicked()
-{
-    qDebug("hid read start");
-    QString show_text;
-    for(int i=0;i<64;i++)
-    buf_IN[i]=0x0b;
-    start_flag=true;
-    QCoreApplication::processEvents();
-    hid_read(handle,buf_IN,64);
-    for(int i = 0;i < 64;i++)
-    {
-        qDebug("buf[%d]:0x%02x",i,buf_IN[i]);
-        show_text+=tr("%1,").arg(buf_IN[i]);
-    }
-    ui->Txt_Usb->setText(show_text);
-    show_text.clear();
-}
-
-
-/*
-    函   数：on_PBtn_UsbSend_clicked
-    描   述：USB手动发送
-    输   入：无
-    输   出：无
-*/
-void Widget::on_PBtn_UsbSend_clicked()
-{
-    int res;	                       // 如果返回-1表示发送失败
-    unsigned char buf[10];
-    buf[0] = 0;	                       // 这就是Report ID
-    buf[1] = 0x0a;
-    for(int i=0;i<8;i++)
-        buf[2+i] = i;
-    res = hid_write(handle, buf, 33);  // 此处必须是33或这大于一些的数字
-    qDebug()<<res;
-}

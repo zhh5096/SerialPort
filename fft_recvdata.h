@@ -1,4 +1,4 @@
-#ifndef FFT_RECVDATA_H
+﻿#ifndef FFT_RECVDATA_H
 #define FFT_RECVDATA_H
 
 #include <QObject>
@@ -12,6 +12,7 @@ public:
     explicit FFT_RecvData(QObject *parent = nullptr);
 
 signals:
+    void FFT_Accomplish();
 
 private slots:
     void FFT_Transform();

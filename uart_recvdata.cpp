@@ -1,4 +1,4 @@
-#include "uart_recvdata.h"
+﻿#include "uart_recvdata.h"
 
 Uart_RecvData::Uart_RecvData(QObject *parent, QSerialPort *S) : QObject(parent), Uart(S)
 {
@@ -113,7 +113,7 @@ void Uart_RecvData::UartRecvData()
         QRWlock.unlock(); // 写入锁解锁
 
         FFT_Count++;
-        if (FFT_Count == RR)
+        if (FFT_Count == static_cast<uint16_t>(RR))
         {
             FFT_Count = 0;
             emit FFT_Signal();

@@ -16,6 +16,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    arithmetic.cpp \
     bandpassfilter_cofficient.cpp \
     fft_recvdata.cpp \
     fir_bandpassfilter.cpp \
@@ -27,13 +28,14 @@ SOURCES += \
     lowpassfilter_cofficient.cpp \
     main.cpp \
     qcustomplot.cpp \
+    stimulusmetagraphics.cpp \
     trapfilter_cofficient.cpp \
     uart_recvdata.cpp \
     udp_recvdata.cpp \
-    usb_thread.cpp \
     widget.cpp
 
 HEADERS += \
+    arithmetic.h \
     bandpassfilter_cofficient.h \
     fft_recvdata.h \
     fftw-3.3.5-dll64/fftw3.h \
@@ -46,10 +48,10 @@ HEADERS += \
     highpassfilter_cofficient.h \
     lowpassfilter_cofficient.h \
     qcustomplot.h \
+    stimulusmetagraphics.h \
     trapfilter_cofficient.h \
     uart_recvdata.h \
     udp_recvdata.h \
-    usb_thread.h \
     widget.h
 
 FORMS += \
