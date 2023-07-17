@@ -118,6 +118,13 @@ void Uart_RecvData::UartRecvData()
             FFT_Count = 0;
             emit FFT_Signal();
         }
+
+        EOG_Count++;
+        if (EOG_Count == 20) {
+            EOG_Count = 0;
+            emit EOG_Signal();
+        }
+
         RecvDataStatus = false;
     }
 }

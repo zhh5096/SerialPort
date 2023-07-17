@@ -14,6 +14,7 @@ public:
 signals:
 
 private slots:
+    void EOG_Detect();
     void IBLS();
 };
 

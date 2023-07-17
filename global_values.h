@@ -5,6 +5,12 @@
 #include <QReadWriteLock>
 #include <fftw-3.3.5-dll64/fftw3.h>
 
+#include <QtBluetooth>
+#include <QBluetoothSocket>
+#include <QBluetoothUuid>
+#include <QBluetoothAddress>
+#include <QIODevice>
+
 extern ushort  PGA;                  // 放大增益
 extern ushort  CHn;                  // 通道数
 extern QString CH_Mode;              // 通道工作模式
@@ -56,5 +62,11 @@ extern double fft_rrmin;
 extern double fft_rrmax;
 
 extern bool IBLS_AccomplishState;
+
+extern QBluetoothDeviceDiscoveryAgent *discoveryAgent;
+extern QString BTaddress;                                     // 记录MAC地址
+extern QBluetoothSocket *socket_blue;
+
+extern uint16_t EOG_Count;
 
 #endif // GLOBAL_VALUES_H

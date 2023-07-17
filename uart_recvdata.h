@@ -25,6 +25,7 @@ public:
 
 signals:
     void FFT_Signal(); // 串口发出的FFT变换信号
+    void EOG_Signal(); // 串口发出的EOG检测信号
 
 private:
     QSerialPort *Uart; // QSerialPort提供访问串行端口的功能。

@@ -1,4 +1,4 @@
-QT       += core gui serialport testlib network
+QT       += core gui serialport testlib network bluetooth
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 

@@ -43,6 +43,9 @@ Widget::Widget(QWidget *parent)
     connect(UDP_RecvDataThread,  SIGNAL(FFT_Signal()), FFT_RecvDataThread, SLOT(FFT_Transform()), Qt::DirectConnection);  // UDP子线程发出信号，频域变化子线程收到信号后进行FFT变换
 
     connect(this, &Widget::destroyed, this, &Widget::closeAllThreads);      // 关闭所有子线程
+
+    discoveryAgent = new QBluetoothDeviceDiscoveryAgent;
+    connect(discoveryAgent, SIGNAL(deviceDiscovered(QBluetoothDeviceInfo)), this, SLOT(discoverBlueTooth(QBluetoothDeviceInfo)));
 }
 
 
@@ -127,8 +130,8 @@ void Widget::eegDataPlotConfig()
     }
     ui->customplot_9->xAxis->setRange(0, 60);
     ui->customplot_9->yAxis->setRange(0,1);
-    ui->customplot_9->xAxis->setLabel("频率/HZ");
-    ui->customplot_9->yAxis->setLabel("幅值/V");
+    ui->customplot_9->xAxis->setLabel("Frequency/HZ");
+    ui->customplot_9->yAxis->setLabel("Amplitude/V");
 }
 
 
@@ -812,14 +815,23 @@ void Widget::drawStimulusmetaGraphs()
 
 
 /*
-    函   数：on_PBtn_CCA_clicked
-    描   述：CCA算法
+    函   数：on_PBtn_EOG_clicked
+    描   述：眨眼信号检测
     输   入：无
     输   出：无
 */
-void Widget::on_PBtn_CCA_clicked()
+void Widget::on_PBtn_EOG_clicked()
 {
-
+    static bool EOG_Status = false;
+    EOG_Status = !EOG_Status;
+    if (EOG_Status) {
+        connect(Uart_RecvDataThread, SIGNAL(EOG_Signal()), Arithmetic_Thread, SLOT(EOG_Detect()), Qt::DirectConnection);
+        ui->PBtn_EOG->setStyleSheet("background-color: rgb(0, 170, 255);");
+    }
+    else {
+        disconnect(Uart_RecvDataThread, SIGNAL(EOG_Signal()), Arithmetic_Thread, SLOT(IBLS()));
+        ui->PBtn_EOG->setStyleSheet("background-color: rgb(255, 255, 255);");
+    }
 }
 
 
@@ -847,3 +859,24 @@ void Widget::on_PBtn_IBLS_clicked()
     }
 }
 
+
+void Widget::on_PBtn_bluetoothScan_clicked()
+{
+    discoveryAgent->start();
+}
+
+
+void Widget::discoverBlueTooth(QBluetoothDeviceInfo info)
+{
+    // QString label = QString("%1 %2").arg(info.address().toString()).arg(info.name());
+    // qDebug() << label << endl;
+    if (info.name() == "HC-06")
+    {
+        BTaddress = info.address().toString();
+        discoveryAgent->stop();
+        // qDebug() << "discoveryFinished";
+        static QString serviceUuid("00001101-0000-1000-8000-00805F9B34FB");
+        socket_blue = new QBluetoothSocket(QBluetoothServiceInfo::RfcommProtocol);
+        socket_blue->connectToService(QBluetoothAddress(BTaddress), QBluetoothUuid(serviceUuid),QIODevice::ReadWrite);
+    }
+}

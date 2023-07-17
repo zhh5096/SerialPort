@@ -88,8 +88,10 @@ private slots:
     void on_PBtn_RmsPP_clicked();
     void setFFTMessage();
     void on_PBtn_SaveRecvData_clicked();
-    void on_PBtn_CCA_clicked();
+    void on_PBtn_EOG_clicked();
     void on_Slider_FFTrr_valueChanged();
     void on_PBtn_IBLS_clicked();
+    void on_PBtn_bluetoothScan_clicked();
+    void discoverBlueTooth(QBluetoothDeviceInfo info);
 };
 #endif // WIDGET_H

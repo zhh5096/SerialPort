@@ -60,3 +60,10 @@ double fft_rrmax = 200;
 
 // 算法相关参数
 bool IBLS_AccomplishState = false;                     // IBLS算法完成标志
+
+// 蓝牙相关参数
+QBluetoothDeviceDiscoveryAgent *discoveryAgent;
+QString BTaddress;                                     // 记录MAC地址
+QBluetoothSocket *socket_blue;
+
+uint16_t EOG_Count = 0;                                // EOG信号算法使用计数标志位
