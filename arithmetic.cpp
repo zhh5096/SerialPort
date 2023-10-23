@@ -8,8 +8,8 @@ arithmetic::arithmetic(QObject *parent) : QObject(parent)
 void arithmetic::EOG_Detect()
 {
     static QVector<QString> sendText = {"w", "d", "s", "a", " "};
-    static QVector<double> part_CH1_Data(0, 500);
-    static QVector<double> part_CH2_Data(0, 500);
+    static QVector<double> part_CH1_Data(500, 0);
+    static QVector<double> part_CH2_Data(500, 0);
     static uint8_t Update_Threshold_Count = 0;
     static double Threshold1 = 0.000006;
     static double Threshold2 = 0.000006;
@@ -27,16 +27,21 @@ void arithmetic::EOG_Detect()
     // 标志位检测
     CH1_Detect_State = false;
     CH2_Detect_State = false;
-    if (part_Detect_CH1_Data[0] > 5*Threshold1 && part_Detect_CH1_Data[1] > 5*Threshold1) CH1_Detect_State = true;
-    if (part_Detect_CH2_Data[0] > 5*Threshold2 && part_Detect_CH2_Data[1] > 5*Threshold2) CH2_Detect_State = true;
+    if (part_Detect_CH1_Data[0] > 6*Threshold1 && part_Detect_CH1_Data[1] > 6*Threshold1) CH1_Detect_State = true;
+    if (part_Detect_CH2_Data[0] > 6*Threshold2 && part_Detect_CH2_Data[1] > 6*Threshold2) CH2_Detect_State = true;
     if (CH1_Detect_State && CH2_Detect_State) {
         static int EOG_Detect_Count = 0;
         EOG_Detect_Count++;
+        if (EOG_Detect_Count > 3) EOG_Detect_Count = 0;
         switch(EOG_Detect_Count) {
-            case 0: socket_blue->write(sendText[0].toUtf8()); break;
-            case 1: socket_blue->write(sendText[1].toUtf8()); break;
-            case 2: socket_blue->write(sendText[2].toUtf8()); break;
-            case 3: socket_blue->write(sendText[3].toUtf8()); break;
+            case 0: rectColor[0] = Qt::yellow; rectColor[1] = Qt::white;  rectColor[2] = Qt::white;  rectColor[3] = Qt::white;  rectColor[4] = Qt::white;
+                    socket_blue->write(sendText[0].toUtf8()); break;
+            case 1: rectColor[0] = Qt::white; rectColor[1] = Qt::yellow;  rectColor[2] = Qt::white;  rectColor[3] = Qt::white;  rectColor[4] = Qt::white;
+                    socket_blue->write(sendText[1].toUtf8()); break;
+            case 2: rectColor[0] = Qt::white; rectColor[1] = Qt::white;  rectColor[2] = Qt::yellow;  rectColor[3] = Qt::white;  rectColor[4] = Qt::white;
+                    socket_blue->write(sendText[2].toUtf8()); break;
+            case 3: rectColor[0] = Qt::white; rectColor[1] = Qt::white;  rectColor[2] = Qt::white;  rectColor[3] = Qt::yellow;  rectColor[4] = Qt::white;
+                    socket_blue->write(sendText[3].toUtf8()); break;
         }
     }
 
@@ -53,6 +58,7 @@ void arithmetic::EOG_Detect()
         Threshold2 = Threshold2 / part_CH2_Data.size();
     }
     if (!CH1_Detect_State && !CH2_Detect_State) {
+        rectColor[0] = Qt::white; rectColor[1] = Qt::white;  rectColor[2] = Qt::white;  rectColor[3] = Qt::white;  rectColor[4] = Qt::yellow;
         socket_blue->write(sendText[4].toUtf8());
     }
 }
